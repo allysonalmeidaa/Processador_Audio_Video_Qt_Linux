@@ -1,115 +1,183 @@
 import sys
 import os
- 
-try: 
-    from safe_import import safe_import
-    import builtins
-    original_import = builtins.__import__
-    builtins.__import__ = safe_import
-    # Função para restaurar o import normal
-    def restaurar_import_normal():
-        builtins.__import__ = original_import
-        print("Import normal restaurado")
-    # Restaurar após a UI carregar
-    from PyQt6.QtCore import QTimer
-    QTimer.singleShot(2000, restaurar_import_normal)
-except Exception as e:
-    print(f"Safe import não disponível: {e}")
-
-# === CONFIGURAÇÃO CRÍTICA PARA PYINSTALLER ===
-if getattr(sys, 'frozen', False):
-    # Executável PyInstaller
-    BASE_DIR = os.path.dirname(sys.executable)
-    os.chdir(BASE_DIR)  # MUDA o diretório de trabalho
-else:
-    # Script Python normal
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
- 
-# Função para obter caminhos absolutos
-def resource_path(relative_path):
-    return os.path.join(BASE_DIR, relative_path)
- 
-# Adiciona o diretório base ao sys.path
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
- 
-# Tenta carregar o tqdm_safe.py
-try:
-    import tqdm_safe
-    sys.modules['tqdm'] = tqdm_safe
-    sys.modules['tqdm.auto'] = tqdm_safe
-    sys.modules['tqdm.std'] = tqdm_safe
-    print("✅ tqdm substituído por versão segura")
-except Exception as e:
-    print(f"⚠ Falha ao substituir tqdm: {e}")
- 
-import faulthandler
-faulthandler.enable()
- 
-import json
+import platform
 import logging
-from datetime import datetime
- 
+import json  # Adiciona import de json
+from datetime import datetime  # Adiciona import de datetime
+import tempfile
+import time
+import atexit
+import faulthandler
+
+# Importações do PyQt6
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout,
-    QLabel, QComboBox, QPushButton, QMessageBox, QSpinBox, QFormLayout, QProgressBar
+    QLabel, QComboBox, QPushButton, QMessageBox, QSpinBox, QFormLayout, 
+    QProgressBar, QPlainTextEdit
 )
 from PyQt6.QtCore import Qt, QTimer, QSharedMemory
 from PyQt6.QtGui import QIcon
 
+# Variável global para o tab de transcrição
 transcricao_tab_global = None
 
 def set_transcricao_tab_instance(tab):
     global transcricao_tab_global
-    transcricao_tab_global = tab 
- 
-# === SUBSTITUA a função check_single_instance() por esta versão melhorada ===
- 
-def check_single_instance():
-    """Verificação de instância única mais confiável"""
-    import tempfile
-    import time
-    import atexit
+    transcricao_tab_global = tab
 
+# === CONFIGURAÇÕES INICIAIS CRÍTICAS ===
+# Definir variável BASE_DIR antes de qualquer outro código
+if getattr(sys, 'frozen', False):
+    # Executável PyInstaller
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    # Script Python normal
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Adicionar o diretório base ao sys.path
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+print(f"Configurando ambiente para {platform.system()}")
+
+# === CONFIGURAÇÃO ESPECÍFICA PARA LINUX ===
+if platform.system() == "Linux":
+    try:
+        # Só aplica as modificações do Linux se realmente estiver no Linux
+        import safe_import
+        import fix_imports
+        import runtime_hook
+        print("Utilitários Linux carregados com sucesso")
+    except ImportError as e:
+        print(f"Erro ao importar utilitários Linux: {e}")
+    except Exception as e:
+        print(f"Erro inesperado com utilitários Linux: {e}")
+else:
+    print("Windows: usando importações normais")
+    
+# === SUBSTITUIÇÃO DO TQDM APENAS NO LINUX ===
+if platform.system() == "Linux":
+    try:
+        import tqdm_safe
+        sys.modules['tqdm'] = tqdm_safe
+        sys.modules['tqdm.auto'] = tqdm_safe
+        sys.modules['tqdm.std'] = tqdm_safe
+        print("tqdm substituído por versão segura (Linux)")
+    except Exception as e:
+        print(f"Falha ao substituir tqdm no Linux: {e}")
+else:
+    print("Windows: usando tqdm normal")
+
+# Função para obter caminhos absolutos
+def resource_path(relative_path):
+    return os.path.join(BASE_DIR, relative_path)
+
+# === HABILITAR DETECTOR DE FALHAS E EXCEÇÕES ===
+faulthandler.enable()
+
+# === FUNÇÃO DE VERIFICAÇÃO DE INSTÂNCIA ÚNICA ===
+def check_single_instance():
+    """Verificação de instância única multiplataforma"""
     lock_file = os.path.join(tempfile.gettempdir(), "processador_audio_video.lock")
 
+    # Verificar se o lock file existe e é antigo
     if os.path.exists(lock_file):
         try:
             file_age = time.time() - os.path.getmtime(lock_file)
-            if file_age > 30:
+            if file_age > 30:  # 30 segundos
                 os.unlink(lock_file)
                 print("Removido lock file antigo")
         except:
             pass
+
     try:
-        with open(lock_file, 'w') as f:
-            f.write(str(os.getpid()))
+        if platform.system() == "Windows":
+            # Método para Windows
+            try:
+                # Tentar criar o arquivo de lock
+                lock_fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                with open(lock_file, 'w') as f:
+                    f.write(str(os.getpid()))
+                
+                def remove_lock():
+                    try:
+                        if os.path.exists(lock_file):
+                            os.unlink(lock_file)
+                    except:
+                        pass
+                
+                atexit.register(remove_lock)
+                return True
+                
+            except (IOError, OSError):
+                # Arquivo já existe, outra instância está rodando
+                return False
+                
+        else:
+            # Método para Linux/Unix
+            try:
+                import fcntl
+                lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR)
+                try:
+                    fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    with open(lock_file, 'w') as f:
+                        f.write(str(os.getpid()))
+                    
+                    def remove_lock():
+                        try:
+                            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                            os.close(lock_fd)
+                            if os.path.exists(lock_file):
+                                os.unlink(lock_file)
+                        except:
+                            pass
+                    
+                    atexit.register(remove_lock)
+                    return True
+                    
+                except (IOError, BlockingIOError):
+                    os.close(lock_fd)
+                    return False
+                    
+            except ImportError:
+                # Fallback se fcntl não estiver disponível
+                print("fcntl não disponível, usando método simplificado")
+                try:
+                    with open(lock_file, 'x') as f:
+                        f.write(str(os.getpid()))
+                    
+                    def remove_lock():
+                        try:
+                            if os.path.exists(lock_file):
+                                os.unlink(lock_file)
+                        except:
+                            pass
+                    
+                    atexit.register(remove_lock)
+                    return True
+                    
+                except (IOError, OSError):
+                    return False
 
-        def remove_lock():
-            try: 
-                if os.path.exists(lock_file):
-                    os.unlink(lock_file)
-            except: 
-                pass
-        atexit.register(remove_lock)
-        return True
-    except (IOError, OSError):
-        print("Outra instância já está em execução!")
-        print("Feche a instância anterior antes de abrir uma nova.")
-        print("Se não houver uma instância, execute: rm -f /tmp/processador_audio_video.lock")
-        return False
+    except Exception as e:
+        print(f"Erro na verificação de instância única: {e}")
+        return True  # Permite continuar em caso de erro 
 
-if not check_single_instance():
-    resposta = input("Deseja forçar a abertura? (s/N): ").lower().strip()
-    if resposta != 's':
-        sys.exit(1)
+def get_app_dir():
+    """Retorna o diretório do app, considerando empacotamento"""
+    if getattr(sys, 'frozen', False):
+        base_dir = os.path.dirname(sys.executable)
     else:
-        print("Abertura forçada - pode causar conflitos!")
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+    app_dir = os.path.join(base_dir, "ProcessadorDeAudioVideo")
+    if not os.path.exists(app_dir):
+        os.makedirs(app_dir, exist_ok=True)
+    return app_dir
 
 # === CONFIGURAÇÃO DE PATHS CORRETA ===
 APP_FOLDER_NAME = "ProcessadorDeAudioVideo"
-CONFIG_PATH = resource_path("config.json")
-log_path = resource_path('output.log')
+CONFIG_PATH = os.path.join(get_app_dir(), "config.json")
+log_path = os.path.join(get_app_dir(), 'output.log')
  
 # Configuração de logging
 logging.basicConfig(
@@ -118,7 +186,6 @@ logging.basicConfig(
     format='%(asctime)s - %(message)s',
     encoding='utf-8'
 )
- 
 def log_interface(mensagem: str):
     hora = datetime.now().strftime("[%H:%M:%S]")
     s = f"{hora} {mensagem}"
@@ -637,11 +704,13 @@ class MainWindow(QMainWindow):
     def carregar_conversao_tab(self):
         """Carrega aba de conversão"""
         try:
-            from Transcricao_conversão_tab_V3 import ConversaoTab
+            from Transcricao_conversao_tab_V3 import ConversaoTab
             self.conversao_tab = ConversaoTab()
             self.tabs.addTab(self.conversao_tab, "Conversão")
             self.adicionar_log_global("Aba de conversão carregada")
         except Exception as e:
+            import traceback
+            print(traceback.format_exc())
             error_msg = f"Erro ao carregar aba de conversão: {e}"
             self.adicionar_log_global(error_msg)
             alt_tab = QLabel(f"Erro ao carregar conversão:\n{str(e)}")
@@ -710,7 +779,7 @@ class MainWindow(QMainWindow):
         """Verifica FFmpeg em background sem travar a UI"""
         try:
             from ffmpeg_utils import garantir_ffmpeg
-            garantir_ffmpeg(self.adicionar_log_global)
+            garantir_ffmpeg(window_parent=self, log_callback=self.adicionar_log_global)
             self.adicionar_log_global("FFmpeg verificado")
         except Exception as e:
             self.adicionar_log_global(f"Erro ao verificar FFmpeg: {e}")
@@ -806,7 +875,7 @@ if __name__ == "__main__":
                 resposta = input("Deseja forçar a abertura? (s/N): ").lower().strip()
                 if resposta != 's':
                     sys.exit(1)
-                print("⚠️  Abertura forçada - pode causar conflitos!")
+                print("Abertura forçada - pode causar conflitos!")
             else:  # Interface gráfica, simplesmente fecha
                 sys.exit(1)
  
@@ -845,7 +914,6 @@ if __name__ == "__main__":
         window.show()
  
         from ffmpeg_utils import garantir_ffmpeg
-        garantir_ffmpeg(log_interface)
  
         return_code = app.exec()
  

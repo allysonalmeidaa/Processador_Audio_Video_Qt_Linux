@@ -12,6 +12,8 @@ venv/
 build/
 dist/
 ProcessadorDeAudioVideo/
+.venv-minimo/
+venv-minimo/
 
 # Temporários
 temp_*.wav

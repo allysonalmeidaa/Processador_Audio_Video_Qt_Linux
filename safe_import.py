@@ -1,44 +1,24 @@
-import builtins
- 
-_original_import = builtins.__import__
- 
+# safe_import.py - Versão segura para Windows e Linux
+import importlib
+import platform
+
 def safe_import(name, globals=None, locals=None, fromlist=(), level=0):
+    """
+    Versão simplificada e segura de importação que funciona em ambas plataformas.
+    """
+    try:
+        # Usar importlib diretamente é mais seguro
+        return importlib.import_module(name)
+    except Exception as e:
+        print(f"Erro ao importar {name}: {e}")
+        return None
 
-    """Import seguro que evita bibliotecas problemáticas durante UI"""
-
-    whitelist = ['whisper', 'torch', 'numpy', 'scipy', 'resemblyzer', 'librosa']
-
-    if any(name.startswith(allowed) for allowed in whitelist):
-        return _original_import(name, globals, locals, fromlist, level)
-
-    blacklist = ['cv2', 'opencv', 'pygame', 'tkinter']
-
-    if any(name.startswith(blacklisted) for blacklisted in blacklist):
-
-        # Retorna mock para evitar segmentation fault
-
-        class MockModule:
-
-            def __getattr__(self, name):
-
-                return MockModule()
-
-            def __call__(self, *args, **kwargs):
-
-                return MockModule()
-
-            def __bool__(self):
-
-                return False
-
-            def __str__(self):
-
-                return f"MockModule({name})"
-
-        return MockModule()
-
-    return _original_import(name, globals, locals, fromlist, level)
- 
-# Aplicar import seguro
-
-# builtins.__import__ = safe_import
+# Não modifique o __import__ no Windows, apenas no Linux
+if platform.system() == "Linux":
+    try:
+        import builtins
+        if not hasattr(builtins, '__original_import__'):
+            builtins.__original_import__ = builtins.__import__
+            builtins.__import__ = safe_import
+    except Exception as e:
+        print(f"Não foi possível configurar safe_import no Linux: {e}")

@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QThread, pyqtSignal, Qt, QTimer
 from PyQt6.QtGui import QTextCursor, QIcon, QAction
 
+from platform_utils import is_windows, is_linux
 # Importação segura do módulo de logs
 try:
     from logs_tab import adicionar_log
@@ -67,6 +68,8 @@ def salvar_config(config):
     """Salva configuração no JSON."""
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
+
+FORCE_CORE_SUBPROCESS = True
 
 
 class TranscricaoTextEdit(QTextEdit):
@@ -179,13 +182,13 @@ class TranscricaoTextEdit(QTextEdit):
                     break
         event.acceptProposedAction()
 
-
 class TranscricaoThread(QThread):
     progresso = pyqtSignal(int, str, str)
     resultado = pyqtSignal(str)
     erro = pyqtSignal(str)
     cancelado = pyqtSignal()
     finished = pyqtSignal()
+    log = pyqtSignal(str)
 
     def __init__(self, caminho, modelo, idioma, log_callback=None):
         super().__init__()
@@ -194,210 +197,141 @@ class TranscricaoThread(QThread):
         self.idioma = idioma
         self._cancelado = False
         self.log_callback = log_callback
+        self._proc = None  # Popen do core
+
+    def _log(self, msg):
+        self.log.emit(msg)
+        if self.log_callback:
+            self.log_callback(msg)
+
+    def cancel(self):
+        self._cancelado = True
+        # Mata o processo se estiver rodando
+        if self._proc and self._proc.poll() is None:
+            try:
+                self._log("[CORE] Cancelando subprocesso...")
+                self._proc.terminate()
+            except Exception:
+                pass
 
     def run(self):
         try:
+            # Chama primeiro o core (subprocesso)
+            self.progresso.emit(5, "Preparando", "Preparando subprocesso")
+            core_result = self._executar_core_subprocesso()
             if self._cancelado:
                 self.cancelado.emit()
-                self.finished.emit()
                 return
-                
-            self.progresso.emit(10, "Iniciando", "Preparando")
-            if not os.path.exists(self.caminho):
-                raise Exception("Arquivo não existe")
-    
-            self.progresso.emit(30, "Processando", "Transcrevendo")
-            
-            # EXECUTAR TRANSCRIÇÃO DIRETAMENTE
-            resultado = self.executar_transcricao_direta(
-                self.caminho,
-                self.modelo,
-                self.idioma
-            )
-            
-            # VERIFICAR RESULTADO
-            if not resultado.get("success", False):
-                error_msg = resultado.get("error", "Erro desconhecido")
-                raise Exception(f"Erro na transcrição: {error_msg}")
-    
-            self.progresso.emit(100, "Concluído", "Finalizado")
-            self.resultado.emit(resultado["text"])
-    
+
+            if not core_result.get("success"):
+                self._log(f"[CORE] Falhou: {core_result.get('error')}")
+                # Fallback
+                self._log("[FALLBACK] Tentando fallback (whisper_simple)")
+                fallback = self._executar_fallback()
+                if fallback.get("success"):
+                    self.resultado.emit(fallback["text"])
+                else:
+                    self.erro.emit(fallback.get("error", "Erro desconhecido"))
+            else:
+                self.resultado.emit(core_result["text"])
         except Exception as e:
             import traceback
-            error_trace = traceback.format_exc()
-            print(f"[DEBUG] Erro no run(): {error_trace}")
-            self.erro.emit(f"Erro: {str(e)}")
+            self._log(traceback.format_exc())
+            self.erro.emit(str(e))
         finally:
             self.finished.emit()
-    
-    def executar_transcricao_direta(self, caminho_arquivo, modelo, idioma):
-        """Função de transcrição direta - tudo em um só lugar"""
+
+    def _executar_core_subprocesso(self):
+        import subprocess, json, os, sys, time
         try:
-            print(f"[TRANSCRIÇÃO] Iniciando: {caminho_arquivo}")
-            if not os.path.exists(caminho_arquivo):
-                return {
-                    "success": False,
-                    "error": f"Arquivo não encontrado: {caminho_arquivo}"
-                }
-                
-            # Configurações de ambiente
-            os.environ['CUDA_VISIBLE_DEVICES'] = ''
-            os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-            
-            # IMPORTAÇÃO SEGURA - REMOVER QUALQUER MOCK EXISTENTE
-            import sys
-            for mod_name in list(sys.modules.keys()):
-                if 'whisper' in mod_name or 'openai' in mod_name:
-                    del sys.modules[mod_name]
-            
-            # Forçar importação limpa do Whisper
-            import importlib
-            importlib.invalidate_caches()
-            
-            # Importar whisper diretamente do sistema, não de mocks
-            try:
-                import whisper
-                # Verificar se é o whisper real, não um mock
-                if not hasattr(whisper, 'load_model') or not callable(whisper.load_model):
-                    return {
-                        "success": False,
-                        "error": "Whisper inválido detectado (possível mock)"
-                    }
-            except ImportError:
-                return {
-                    "success": False,
-                    "error": "Biblioteca whisper não encontrada. Instale com: pip install openai-whisper"
-                }
-            
-            print(f"[TRANSCRIÇÃO] Bibliotecas importadas - Whisper real detectado")
-            
-            # Carregar modelo Whisper
-            try:
-                model = whisper.load_model(modelo)
-                print(f"[TRANSCRIÇÃO] Modelo carregado: {modelo}")
-            except Exception as e:
-                return {
-                    "success": False,
-                    "error": f"Erro ao carregar modelo: {str(e)}"
-                }
-            
-            # Configurar argumentos de transcrição
-            transcribe_args = {}
-            if idioma and idioma != "auto":
-                transcribe_args["language"] = idioma
-                
-            print(f"[TRANSCRIÇÃO] Iniciando transcrição...")
-            
-            # Fazer transcrição
-            try:
-                result = model.transcribe(caminho_arquivo, **transcribe_args, verbose=False)
-                print(f"[TRANSCRIÇÃO] Transcrição concluída")
-                
-                # TENTAR DIARIZAÇÃO
+            script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "core_subprocess.py")
+            if not os.path.exists(script_path):
+                return {"success": False, "error": "core_subprocess.py não encontrado"}
+
+            cmd = [sys.executable, script_path, self.caminho, self.modelo, self.idioma or "auto"]
+            self._log(f"[CORE] Executando: {cmd}")
+
+            # Windows: esconder janela
+            startupinfo = None
+            creationflags = 0
+            if sys.platform.startswith("win"):
                 try:
-                    print(f"[DIARIZAÇÃO] Iniciando diarização...")
-                    from diarizacao_resemblyzer import diarize_audio
-                    diarization = diarize_audio(caminho_arquivo, verbose=True)
-                    print(f"[DIARIZAÇÃO] Diarização concluída: {len(diarization)} segmentos")
-                    
-                    # COMBINAR TRANSCRIÇÃO COM DIARIZAÇÃO (VERSÃO INTELIGENTE)
-                    segments_combinados = []
-                    ultimo_texto = ""
-                    ultimo_speaker = ""
-                    
-                    for diar_start, diar_end, speaker in diarization:
-                        segment_text = ""
-                        # Coletar TODO o texto dos segmentos Whisper que se sobrepõem
-                        for segment in result["segments"]:
-                            whisper_start = segment["start"]
-                            whisper_end = segment["end"]
-                            # Verificar sobreposição (basta qualquer sobreposição)
-                            if (whisper_start <= diar_end and whisper_end >= diar_start):
-                                segment_text += " " + segment["text"].strip()
-                        segment_text = segment_text.strip()
-                        if segment_text:
-                            speaker_label = f"Speaker {speaker.split('_')[-1]}" if speaker != "unknown" else "Speaker desconhecido"
-                            # VERIFICAÇÃO INTELIGENTE DE REPETIÇÃO
-                            is_repeticao = False
-                            if segments_combinados:
-                                # 1. Verifica se é repetição EXATA
-                                if segment_text == ultimo_texto:
-                                    is_repeticao = True
-                                # 2. Verifica se é repetição PARCIAL (80% similar)
-                                elif ultimo_texto and segment_text.startswith(ultimo_texto):
-                                    is_repeticao = True
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    creationflags = subprocess.CREATE_NO_WINDOW
+                except Exception:
+                    pass
 
-                                elif ultimo_texto and segment_text.endswith(ultimo_texto):
-                                    is_repeticao = True
+            self._proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=creationflags,
+                startupinfo=startupinfo
+            )
 
-                                elif ultimo_texto and speaker_label == ultimo_speaker:
-                                    palavras_atual = segment_text.lower().split()
-                                    palavras_anterior = ultimo_texto.lower().split()
+            # Leitura incremental (pode evoluir para progresso)
+            stdout_lines = []
+            last_emit = 10
+            while True:
+                if self._cancelado:
+                    self.cancel()
+                    return {"success": False, "error": "Cancelado pelo usuário"}
+                line = self._proc.stdout.readline()
+                if not line:
+                    if self._proc.poll() is not None:
+                        break
+                    time.sleep(0.05)
+                    continue
+                stdout_lines.append(line)
 
-                                    if len(palavras_atual) > 3 and len(palavras_anterior) > 3:
-                                        palavras_comuns = set(palavras_atual).intersection(palavras_anterior)
-                                        similaridade = len(palavras_comuns) / min(len(palavras_atual), len(palavras_anterior))
+                # Emite algum progresso “falso” para animar (pode ser refinado)
+                if last_emit < 90:
+                    last_emit += 5
+                    self.progresso.emit(last_emit, "Processando", "Diarizando / Transcrevendo")
 
-                                        if similaridade > 0.8:
-                                            is_repeticao = True
+            rc = self._proc.poll()
+            stderr_all = self._proc.stderr.read() if self._proc.stderr else ""
+            if rc != 0:
+                return {"success": False, "error": stderr_all.strip() or f"Retorno {rc}"}
 
-                                elif (len(segment_text.split()) <= 4 and
-                                      segment_text in ultimo_texto):
-                                    is_repeticao = True
+            # Pegar última linha JSON
+            json_obj = None
+            for ln in reversed(stdout_lines):
+                ln = ln.strip()
+                if not ln:
+                    continue
+                try:
+                    json_obj = json.loads(ln)
+                    break
+                except Exception:
+                    continue
+            if not json_obj:
+                return {"success": False, "error": "Saída do core sem JSON válido"}
 
-                            # SE NÃO FOR REPETIÇÃO, adiciona ao resultado
-                            if not is_repeticao:
-                                segments_combinados.append({
-                                    "speaker": speaker_label,
-                                    "start": diar_start,
-                                    "end": diar_end,
-                                    "text": segment_text
-                                })
-                                ultimo_texto = segment_text
-                                ultimo_speaker = speaker_label
-                    
-                    # Formatar texto final com timestamps
-                    texto_final = "\n\n".join([
-                        f"[{s['start']:.1f}s -> {s['end']:.1f}s] {s['speaker']}: {s['text']}" 
-                        for s in segments_combinados
-                    ])
-                    
-                    return {
-                        "success": True,
-                        "text": texto_final,
-                        "language": result.get("language", "unknown"),
-                        "diarization": segments_combinados,
-                        "segments": result["segments"]
-                    }
-                    
-                except ImportError as e:
-                    print(f"[AVISO] Diarização não disponível: {e}")
-                    # Fallback: retornar apenas transcrição sem diarização
-                    return {
-                        "success": True,
-                        "text": result["text"],
-                        "language": result.get("language", "unknown"),
-                        "segments": result["segments"]
-                    }
-                
-            except Exception as e:
-                return {
-                    "success": False,
-                    "error": f"Erro durante transcrição: {str(e)}"
-                }
-            
+            self.progresso.emit(100, "Concluído", "Finalizado")
+            self._log("[CORE] Pipeline finalizado com sucesso (subprocesso)")
+            return json_obj
         except Exception as e:
-            import traceback
-            return {
-                "success": False,
-                "error": f"Erro na transcrição: {str(e)}",
-                "traceback": traceback.format_exc()
-            }
+            return {"success": False, "error": f"Exceção core: {e}"}
 
-    def cancel(self):
-        """Método para cancelar a thread"""
-        self._cancelado = True
+    def _executar_fallback(self):
+        # Reuso do whisper_simple existente
+        try:
+            import os, sys, traceback
+            self._log("[FALLBACK] Iniciando")
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "whisper_simple.py"), "r", encoding="utf-8") as f:
+                code = f.read()
+            ns = {"__file__": "whisper_simple.py", "os": os, "sys": sys, "traceback": traceback}
+            exec(code, ns)
+            fn = ns.get("transcrever_audio")
+            if not fn:
+                return {"success": False, "error": "Função transcrever_audio não encontrada no fallback"}
+            res = fn(self.caminho, self.modelo, self.idioma)
+            return res
+        except Exception as e:
+            return {"success": False, "error": f"Fallback falhou: {e}"}
 
 
 class AnimatedProgressBar(QProgressBar):
@@ -439,9 +373,7 @@ class TranscricaoTab(QWidget):
         self.caminho_arquivo = ""
         self.thread = None
         self._historico_cache = []
-
         self.setup_ui()
-
         QTimer.singleShot(1000, self.carregar_whisper_tardio)
 
     def setup_ui(self):
@@ -572,35 +504,111 @@ class TranscricaoTab(QWidget):
         self.log_criacao_pastas_arquivos()
 
     def carregar_whisper_tardio(self):
-        """Carrega whisper após inicialização para evitar travamentos iniciais."""
+        """
+        Valida whisper de forma silenciosa. No Windows, se falhar,
+        continuamos porque usamos subprocesso (core_subprocess).
+        """
         try:
-            # Limpar qualquer mock existente
-            import sys
-            for mod_name in list(sys.modules.keys()):
-                if 'whisper' in mod_name or 'openai' in mod_name:
-                    del sys.modules[mod_name]
-            
-            import importlib
-            importlib.invalidate_caches()
-            
-            import whisper
-            self._whisper_loaded = True
-            self.adicionar_log_console("Módulo Whisper carregado com sucesso.")
-        except ImportError as e:
-            self._import_error = f"Whisper não instalado. Execute: pip install openai-whisper"
-            self.adicionar_log_console(f"Erro ao carregar Whisper: {self._import_error}")
+            from whisper_import import import_whisper_safely
+            whisper, error = import_whisper_safely()
+            if error:
+                self._whisper_loaded = False
+                self._import_error = error
+                self.adicionar_log_console(f"Whisper local não carregado (OK para subprocesso): {error}")
+            else:
+                self._whisper_loaded = True
+                self._import_error = None
+                self.adicionar_log_console("Whisper local validado.")
         except Exception as e:
+            self._whisper_loaded = False
             self._import_error = str(e)
-            self.adicionar_log_console(f"Erro ao carregar Whisper: {e}")
+            self.adicionar_log_console(f"Falha ao inicializar Whisper (ignorando para subprocesso): {e}")
+
+    def uses_core_subprocess(self):
+        """
+        Retorna True se pudermos usar o core em subprocesso (arquivo presente),
+        mesmo que o whisper local não tenha carregado.
+        """
+        try:
+            core_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "core_subprocess.py")
+            return os.path.exists(core_path)
+        except Exception:
+            return False
 
     def verificar_whisper_carregado(self):
-        if not self._whisper_loaded:
-            if self._import_error:
-                QMessageBox.critical(self, "Erro", f"Erro ao carregar módulo Whisper:\n{self._import_error}")
-            else:
-                QMessageBox.critical(self, "Aguarde", "As bibliotecas de transcrição ainda estão sendo carregadas.")
-            return False
-        return True
+        """
+        Regras:
+          - Se whisper local carregou: OK.
+          - Caso contrário, se existe core_subprocess.py ou FORCE_CORE_SUBPROCESS: OK.
+          - Caso contrário, bloquear.
+        """
+        if self._whisper_loaded:
+            return True
+
+        if FORCE_CORE_SUBPROCESS or self.uses_core_subprocess():
+            self.adicionar_log_console("Prosseguindo com core em subprocesso sem whisper local.")
+            return True
+
+        # Bloqueia somente se realmente não houver alternativa
+        if self._import_error:
+            QMessageBox.critical(self, "Erro", f"Whisper não disponível: {self._import_error}")
+        else:
+            QMessageBox.critical(self, "Aguarde", "Bibliotecas ainda não disponíveis.")
+        return False
+
+    def transcrever(self):
+        """
+        Inicia o processo de transcrição. Removida checagem direta de _whisper_loaded.
+        """
+        if not self.caminho_arquivo:
+            QMessageBox.warning(self, "Aviso", "Selecione um arquivo primeiro.")
+            return
+
+        # Usa a lógica unificada (agora permite fallback subprocesso core)
+        if not self.verificar_whisper_carregado():
+            return
+
+        if not os.path.exists(self.caminho_arquivo):
+            QMessageBox.warning(self, "Erro", f"Arquivo não encontrado: {self.caminho_arquivo}")
+            return
+
+        # Garantir que não há thread anterior
+        if hasattr(self, 'thread') and self.thread and self.thread.isRunning():
+            try:
+                self.thread.quit()
+                self.thread.wait(1200)
+            except Exception:
+                pass
+            self.thread = None
+
+        modelo = self.combo_modelos.currentText()
+        idioma = self.combo_idioma.currentData()
+
+        self.texto_transcricao.setHtml(
+            "<div style='color:#b0f7b8;font-size:17px;text-align:center;'>Processando, aguarde...</div>"
+        )
+        self.label_progresso.setVisible(True)
+        self.progress.setVisible(True)
+        self.label_etapa.setVisible(True)
+        self.progress.setIndeterminate(True)
+        self.progress.setFormatWithStatus("Preparando", None)
+        self.smooth_target = 0
+        self.smooth_status = "Preparando"
+        self.smooth_progress_timer.start(40)
+
+        self.thread = TranscricaoThread(
+            self.caminho_arquivo, modelo, idioma,
+            log_callback=self.adicionar_log_console
+        )
+        self.thread.progresso.connect(self.atualizar_progresso_detalhado)
+        self.thread.resultado.connect(self.exibir_transcricao)
+        self.thread.erro.connect(self.exibir_erro)
+        self.thread.cancelado.connect(self.tratamento_cancelado)
+        self.thread.log.connect(self.adicionar_log_console)
+        self.thread.finished.connect(self.limpar_thread)
+
+        self.btn_cancelar.setEnabled(True)
+        self.thread.start()
 
     def closeEvent(self, event):
         """Encerra thread ao fechar."""
@@ -698,7 +706,7 @@ class TranscricaoTab(QWidget):
         if not self.caminho_arquivo:
             QMessageBox.warning(self, "Aviso", "Selecione um arquivo primeiro.")
             return
-    
+
         if not self.verificar_whisper_carregado():
             return
     
@@ -707,11 +715,10 @@ class TranscricaoTab(QWidget):
             return
     
         # Garantir que não há thread anterior rodando
-        if self.thread and self.thread.isRunning():
-            self.thread.cancel()
+        if hasattr(self, 'thread') and self.thread and self.thread.isRunning():
             self.thread.quit()
             self.thread.wait(1000)
-        self.thread = None
+            self.thread = None
 
         modelo = self.combo_modelos.currentText()
         idioma = self.combo_idioma.currentData()
@@ -734,6 +741,7 @@ class TranscricaoTab(QWidget):
         self.thread.resultado.connect(self.exibir_transcricao)
         self.thread.erro.connect(self.exibir_erro)
         self.thread.cancelado.connect(self.tratamento_cancelado)
+        self.thread.log.connect(self.adicionar_log_console)
         self.thread.finished.connect(self.limpar_thread)
     
         self.btn_cancelar.setEnabled(True)
@@ -772,11 +780,18 @@ class TranscricaoTab(QWidget):
     def cancelar_transcricao(self):
         if self.thread and self.thread.isRunning():
             self.thread.cancel()
-            self.thread.quit()
-            if not self.thread.wait(2000):
-                self.thread.terminate()
-                self.thread.wait()
+            self.thread.wait(1500)
         self.btn_cancelar.setEnabled(False)
+        self.progress.setVisible(False)
+        self.label_progresso.setVisible(False)
+        self.label_etapa.setVisible(False)
+        self.progress.setIndeterminate(False)
+        self.smooth_progress_timer.stop()
+        self.texto_transcricao.setHtml("""
+            <div style="color:#ff6b6b;font-size:16px;text-align:center;font-weight:bold;padding:10px 0;">
+                Transcrição cancelada pelo usuário.
+            </div>
+        """)
         self.adicionar_log_console("Transcrição cancelada pelo usuário.")
 
     def limpar_thread(self):
@@ -835,23 +850,64 @@ class TranscricaoTab(QWidget):
         self.adicionar_log_console(f"Erro durante a transcrição: {mensagem}")
 
     def adicionar_ao_historico(self):
-        base = os.path.splitext(os.path.basename(self.caminho_arquivo))[0]
-        nome_transcricao = f"transcricao_{base}.txt"
-        idioma_cod = self.combo_idioma.currentData()
-        data = {
-            "arquivo": nome_transcricao,
-            "nome": nome_transcricao,
-            "data": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "idioma": idioma_cod
-        }
-        historico = self._ler_historico_arquivo()
-        historico = [h for h in historico if h["arquivo"] != data["arquivo"]]
-        historico.insert(0, data)
-        max_itens = self.config.get("max_historico", 20)
-        historico = historico[:max_itens]
-        self._salvar_historico_arquivo(historico)
-        self.carregar_historico()
-        self.adicionar_log_console(f"Transcrição adicionada ao histórico: {nome_transcricao}")
+        """Adiciona transcrição atual ao histórico e salva no arquivo"""
+        try:
+            # Verificar se tem caminho de arquivo
+            if not self.caminho_arquivo:
+                return
+                
+            # Nome base do arquivo
+            base = os.path.splitext(os.path.basename(self.caminho_arquivo))[0]
+            nome_transcricao = f"transcricao_{base}.txt"
+            
+            # Caminho completo da transcrição
+            caminho_transcricao = os.path.join(TRANSCRICOES_DIR, nome_transcricao)
+            
+            # Garantir que a pasta existe
+            if not os.path.exists(TRANSCRICOES_DIR):
+                os.makedirs(TRANSCRICOES_DIR, exist_ok=True)
+                self.adicionar_log_console(f"Pasta de transcrições criada: {TRANSCRICOES_DIR}")
+            
+            # Salvar conteúdo atual da transcrição
+            texto = self.texto_transcricao.toPlainText()
+            if texto.strip():
+                with open(caminho_transcricao, "w", encoding="utf-8") as f:
+                    f.write(texto)
+                self.adicionar_log_console(f"Transcrição salva em: {caminho_transcricao}")
+            
+            # Verificar tradução
+            nome_traducao = f"transcricao_{base}_ingles.txt"
+            caminho_traducao = os.path.join(TRANSCRICOES_DIR, nome_traducao)
+            tem_traducao = os.path.exists(caminho_traducao)
+            
+            # Habilitar botão de baixar tradução se existir
+            self.btn_download_traducao.setEnabled(tem_traducao)
+            
+            # Registrar no histórico
+            idioma_cod = self.combo_idioma.currentData()
+            data = {
+                "arquivo": nome_transcricao,
+                "nome": os.path.basename(self.caminho_arquivo),
+                "caminho_completo": caminho_transcricao,
+                "data": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "idioma": idioma_cod,
+                "tem_traducao": tem_traducao
+            }
+            
+            historico = self._ler_historico_arquivo()
+            # Remover entrada anterior para o mesmo arquivo, se existir
+            historico = [h for h in historico if h.get("arquivo") != data["arquivo"]]
+            # Adicionar nova entrada no início
+            historico.insert(0, data)
+            max_itens = self.config.get("max_historico", 20)
+            historico = historico[:max_itens]
+            self._salvar_historico_arquivo(historico)
+            self.carregar_historico()
+            self.adicionar_log_console(f"Transcrição adicionada ao histórico: {nome_transcricao}")
+        except Exception as e:
+            self.adicionar_log_console(f"Erro ao adicionar ao histórico: {str(e)}")
+            import traceback
+            self.adicionar_log_console(traceback.format_exc())
 
     def carregar_historico(self):
         historico = self._ler_historico_arquivo()
@@ -887,21 +943,55 @@ class TranscricaoTab(QWidget):
                 self.lista_historico.addItem(display)
 
     def abrir_do_historico(self, item):
+        """Corrigido para evitar 'nome_arquivo' undefined"""
         idx = self.lista_historico.currentRow()
         if idx < 0 or idx >= len(self._historico_cache):
             return
-        nome_arquivo = self._historico_cache[idx]["arquivo"]
-        caminho = os.path.join(TRANSCRICOES_DIR, nome_arquivo)
-        if os.path.exists(caminho):
-            try:
-                with open(caminho, "r", encoding="utf-8") as f:
-                    conteudo = f.read()
-                self.texto_transcricao.setPlainText(conteudo)
-                self.adicionar_log_console(f"Transcrição do histórico carregada: {nome_arquivo}")
-            except Exception as e:
-                QMessageBox.warning(self, "Erro", f"Erro ao ler arquivo: {str(e)}")
-        else:
-            QMessageBox.warning(self, "Aviso", "Arquivo de transcrição não encontrado!")
+        
+        try:
+            # Obter dados do histórico
+            entrada_historico = self._historico_cache[idx]
+            
+            # Verificar se temos informações necessárias
+            if "arquivo" not in entrada_historico:
+                QMessageBox.warning(self, "Aviso", "Registro de histórico inválido")
+                return
+                
+            arquivo_nome = entrada_historico["arquivo"]
+            
+            # Verificar se temos caminho_completo no registro histórico
+            if "caminho_completo" in entrada_historico and os.path.exists(entrada_historico["caminho_completo"]):
+                caminho = entrada_historico["caminho_completo"]
+            else:
+                # Caminho tradicional baseado apenas no nome do arquivo
+                caminho = os.path.join(TRANSCRICOES_DIR, arquivo_nome)
+            
+            # Verificar se existe
+            if not os.path.exists(caminho):
+                QMessageBox.warning(self, "Aviso", f"Arquivo de transcrição não encontrado: {caminho}")
+                return
+            
+            # Ler o conteúdo
+            with open(caminho, "r", encoding="utf-8") as f:
+                conteudo = f.read()
+            
+            # Exibir no editor
+            self.texto_transcricao.setPlainText(conteudo)
+            
+            # Verificar se também existe tradução em inglês
+            nome_base = os.path.splitext(arquivo_nome)[0]
+            if nome_base.endswith("_ingles"):
+                self.btn_download_traducao.setEnabled(False)
+            else:
+                # Verificar se existe versão em inglês
+                caminho_traducao = os.path.join(TRANSCRICOES_DIR, f"{nome_base}_ingles.txt")
+                self.btn_download_traducao.setEnabled(os.path.exists(caminho_traducao))
+            
+            self.adicionar_log_console(f"Transcrição do histórico carregada: {arquivo_nome}")
+            
+        except Exception as e:
+            QMessageBox.warning(self, "Erro", f"Erro ao ler arquivo: {str(e)}")
+            self.adicionar_log_console(f"Erro ao carregar transcrição do histórico: {str(e)}")
 
     def remover_selecionado(self):
         idx = self.lista_historico.currentRow()
@@ -936,25 +1026,76 @@ class TranscricaoTab(QWidget):
         self._salvar_com_dialogo(texto, nome_sugestao)
 
     def baixar_traducao(self):
-        if not self.caminho_arquivo:
-            QMessageBox.warning(self, "Aviso", "Nenhuma tradução para baixar.")
-            return
-        
-        base = os.path.splitext(os.path.basename(self.caminho_arquivo))[0]
-        nome_traducao = f"transcricao_{base}_ingles.txt"
-        caminho_trad = os.path.join(TRANSCRICOES_DIR, nome_traducao)
-        
-        if not os.path.exists(caminho_trad):
-            QMessageBox.warning(self, "Aviso", "Arquivo de tradução não encontrado.")
-            return
-        
+        """Baixa a tradução em inglês do arquivo selecionado"""
         try:
+            # Verificar se temos um arquivo atual
+            nome_base = None
+            
+            if self.caminho_arquivo:
+                # Usar arquivo selecionado atualmente
+                nome_base = os.path.splitext(os.path.basename(self.caminho_arquivo))[0]
+            else:
+                # Se não tiver arquivo selecionado, verificar histórico atual
+                idx = self.lista_historico.currentRow()
+                if idx >= 0 and idx < len(self._historico_cache):
+                    entrada = self._historico_cache[idx]
+                    nome_arquivo = entrada.get("arquivo", "")
+                    if nome_arquivo:
+                        # Remover possíveis prefixos/sufixos para obter o nome base
+                        nome_base = nome_arquivo.replace("transcricao_", "")
+                        nome_base = os.path.splitext(nome_base)[0]
+                        
+            if not nome_base:
+                QMessageBox.warning(self, "Aviso", "Selecione um arquivo do histórico ou abra um arquivo para transcrição.")
+                return
+                
+            # Tente encontrar o arquivo de tradução em vários formatos possíveis
+            possiveis_caminhos = [
+                os.path.join(TRANSCRICOES_DIR, f"transcricao_{nome_base}_ingles.txt"),
+                os.path.join(TRANSCRICOES_DIR, f"{nome_base}_ingles.txt"),
+                os.path.join(TRANSCRICOES_DIR, f"transcricao_{nome_base}_en.txt")
+            ]
+            
+            # Verificar qual caminho existe
+            caminho_trad = None
+            for path in possiveis_caminhos:
+                if os.path.exists(path):
+                    caminho_trad = path
+                    break
+                    
+            if not caminho_trad:
+                QMessageBox.warning(self, "Aviso", 
+                    "Arquivo de tradução não encontrado.\n\n"
+                    "Certifique-se de que:\n"
+                    "1. A transcrição foi realizada com um idioma específico (não 'Auto')\n"
+                    "2. O processo de transcrição foi finalizado corretamente")
+                self.adicionar_log_console(f"Arquivos de tradução não encontrados. Caminhos verificados: {possiveis_caminhos}")
+                return
+            
+            # Ler o arquivo de tradução
             with open(caminho_trad, "r", encoding="utf-8") as f:
                 texto = f.read()
-            self._salvar_com_dialogo(texto, nome_traducao)
-            self.adicionar_log_console(f"Tradução salva como: {nome_traducao}")
+            
+            # Abrir diálogo para salvar
+            nome_arquivo_sugerido = os.path.basename(caminho_trad)
+            caminho_salvar, _ = QFileDialog.getSaveFileName(
+                self,
+                "Salvar tradução como...",
+                nome_arquivo_sugerido,
+                "Arquivos de texto (*.txt);;Todos os arquivos (*)"
+            )
+            
+            if caminho_salvar:
+                with open(caminho_salvar, "w", encoding="utf-8") as f:
+                    f.write(texto)
+                self.adicionar_log_console(f"Tradução salva como: {caminho_salvar}")
+                QMessageBox.information(self, "Sucesso", f"Tradução salva com sucesso em:\n{caminho_salvar}")
+            
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao ler tradução: {str(e)}")
+            QMessageBox.critical(self, "Erro", f"Erro ao processar tradução: {str(e)}")
+            self.adicionar_log_console(f"Erro ao baixar tradução: {str(e)}")
+            import traceback
+            self.adicionar_log_console(traceback.format_exc())
 
     def _salvar_com_dialogo(self, texto, sugestao_nome):
         caminho, _ = QFileDialog.getSaveFileName(

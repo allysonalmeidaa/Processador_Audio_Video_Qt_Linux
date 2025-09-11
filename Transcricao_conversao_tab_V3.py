@@ -1,5 +1,10 @@
 import os
 import sys
+import platform
+
+YT_DLP_AVAILABLE = False
+yt_dlp = None
+
 import json
 from PyQt6.QtWidgets import (
     QWidget, QLabel, QFileDialog, QVBoxLayout, QHBoxLayout,
@@ -9,7 +14,6 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject
 from Processamento_video import (
     processar_video, criar_diretorio_saida
 )
-
 from logs_tab import adicionar_log
 
 def get_app_dir():
@@ -167,6 +171,17 @@ class ConversaoTab(QWidget):
         self.edit_origem.setEnabled(False)
         adicionar_log("Processamento de conversão iniciado.")
 
+        # Encerrar thread anterior se existir
+        if hasattr(self, 'thread') and self.thread and self.thread.isRunning():
+            try:
+                self.thread.quit()
+                self.thread.wait(1000)
+            except:
+                pass
+            self.thread = None
+            self.worker = None
+
+        # Criar nova thread
         self.thread = QThread()
         self.worker = ConversaoWorker(origem, formatos, diretorio_saida, parent_widget=self)
         self.worker.moveToThread(self.thread)
@@ -175,28 +190,36 @@ class ConversaoTab(QWidget):
         self.worker.log.connect(self.text_saida.append)
         self.worker.log.connect(adicionar_log)
         self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
 
     def conversao_finalizada(self, arquivos_gerados):
-        self.arquivos_convertidos = arquivos_gerados
-        self.btn_converter.setEnabled(True)
-        self.btn_baixar.setEnabled(True)
-        self.btn_selecionar_arquivo.setEnabled(True)
-        for cb in self.checkboxes:
-            cb.setEnabled(True)
-        self.edit_origem.setEnabled(True)
-        if arquivos_gerados:
-            adicionar_log("Conversão finalizada com sucesso.")
-        else:
-            adicionar_log("Conversão finalizada sem arquivos gerados.")
-        # FINALIZAÇÃO DA THREAD (boa prática)
-        if self.thread:
-            print("[DEBUG] Finalizando thread no slot conversao_finalizada")
-            self.thread.quit()
-            self.thread.wait()
-            self.thread = None
+        try:
+            self.arquivos_convertidos = arquivos_gerados
+            self.btn_converter.setEnabled(True)
+            self.btn_baixar.setEnabled(len(arquivos_gerados) > 0)
+            self.btn_selecionar_arquivo.setEnabled(True)
+            for cb in self.checkboxes:
+                cb.setEnabled(True)
+            self.edit_origem.setEnabled(True)
+            
+            if arquivos_gerados:
+                adicionar_log("Conversão finalizada com sucesso.")
+            else:
+                adicionar_log("Conversão finalizada sem arquivos gerados.")
+                
+            # LIMPEZA SEGURA DA THREAD
+            if hasattr(self, 'thread') and self.thread:
+                try:
+                    if self.thread.isRunning():
+                        self.thread.quit()
+                        self.thread.wait(1000)
+                except Exception as e:
+                    adicionar_log(f"Erro ao finalizar thread: {str(e)}")
+                finally:
+                    self.thread = None
+                    self.worker = None
+        except Exception as e:
+            adicionar_log(f"Erro no método conversao_finalizada: {str(e)}")
 
     def baixar_arquivos(self):
         if not self.arquivos_convertidos:

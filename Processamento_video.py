@@ -1,13 +1,55 @@
 import os
 import sys
-import subprocess
-import yt_dlp
+import platform
 from datetime import datetime
+import subprocess
 from PyQt6.QtWidgets import QMessageBox
-
 from erros_usuario import registrar_erro_usuario
 from ffmpeg_utils import garantir_ffmpeg
 from logs_tab import adicionar_log
+
+YT_DLP_AVAILABLE = False
+yt_dlp = None
+
+try:
+    # Importação direta e simples
+    import yt_dlp
+    YT_DLP_AVAILABLE = True
+except ImportError:
+    print("yt-dlp não disponível. Use 'pip install yt-dlp' para instalar.")
+except Exception as e:
+    print(f"Erro ao importar yt-dlp: {str(e)}")
+
+def run_subprocess_command(cmd, task_name="comando"):
+    """Executa comando subprocess de forma multiplataforma"""
+    try:
+        import subprocess
+        import platform
+        
+        # Configurações específicas por plataforma
+        kwargs = {}
+        if platform.system() == "Windows":
+            kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+            kwargs['startupinfo'] = subprocess.STARTUPINFO()
+        
+        result = subprocess.run(
+            cmd, 
+            capture_output=True, 
+            text=True,
+            **kwargs
+        )
+        
+        if result.returncode == 0:
+            return True, result.stdout
+        else:
+            error_msg = f"Erro no {task_name}: {result.stderr}"
+            print(error_msg)
+            return False, error_msg
+            
+    except Exception as e:
+        error_msg = f"Exceção no {task_name}: {str(e)}"
+        print(error_msg)
+        return False, error_msg
 
 def get_app_dir():
     # Diretório raiz do projeto/pasta de dados do app, multiplataforma
@@ -55,57 +97,35 @@ def nome_base_entrada(origem):
         return "arquivo"
 
 def baixar_do_youtube(url, caminho_saida, parent_widget=None):
+    """Baixa vídeo do YouTube usando o wrapper de subprocess"""
     try:
-        adicionar_log(f"Iniciando download do YouTube: {url}")
+        from yt_dlp_wrapper import baixar_video_youtube
+        adicionar_log(f"Iniciando download do YouTube usando wrapper: {url}")
+        
         if not os.path.exists(caminho_saida):
             os.makedirs(caminho_saida, exist_ok=True)
             adicionar_log(f"Diretório de saída criado: {caminho_saida}")
-        opcoes_ydl = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
-            'outtmpl': os.path.join(caminho_saida, "video_%(title)s.%(ext)s"),
-            'merge_output_format': 'mp4',
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',
-            }],
-            'prefer_ffmpeg': True,
-            'verbose': False,
-        }
-        with yt_dlp.YoutubeDL(opcoes_ydl) as ydl:
-            info = ydl.extract_info(url, download=True)
-            caminho_video = ydl.prepare_filename(info)
-            titulo = info.get('title') or 'youtube'
-            nome_base = titulo.replace(" ", "_")
-            caminho_final = os.path.join(os.path.dirname(caminho_video), f"video_{nome_base}.mp4")
-            if os.path.exists(caminho_final):
-                try:
-                    os.remove(caminho_final)
-                    adicionar_log(f"Arquivo existente removido: {caminho_final}")
-                except Exception as e:
-                    log_erro(f"Erro ao remover arquivo existente: {e}")
-                    registrar_erro_usuario("Conversão", f"Erro ao remover arquivo existente: {e}")
-                    return None, None
-            if not os.path.exists(caminho_video):
-                base_dir = os.path.dirname(caminho_video)
-                nome_base_file = os.path.splitext(os.path.basename(caminho_video))[0]
-                for ext in ['.mp4', '.webm', '.mkv']:
-                    alt_path = os.path.join(base_dir, nome_base_file + ext)
-                    if os.path.exists(alt_path):
-                        caminho_video = alt_path
-                        break
-            if caminho_video != caminho_final and os.path.exists(caminho_video):
-                os.rename(caminho_video, caminho_final)
-                adicionar_log(f"Arquivo baixado renomeado: {caminho_final}")
-            adicionar_log(f"Download do YouTube finalizado: {caminho_final}")
-            return caminho_final, nome_base
+        
+        # Usa nosso wrapper que executa yt-dlp como subprocess
+        caminho_video, nome_base = baixar_video_youtube(url, caminho_saida)
+        
+        if not caminho_video or not os.path.exists(caminho_video):
+            msg = "Erro ao baixar do YouTube. Arquivo não encontrado após download."
+            if parent_widget:
+                QMessageBox.critical(parent_widget, "Erro download YouTube", msg)
+            adicionar_log(msg)
+            return None, None
+            
+        adicionar_log(f"Download do YouTube finalizado: {caminho_video}")
+        return caminho_video, nome_base
+        
     except Exception as e:
         msg = f"Erro ao baixar do YouTube: {str(e)}"
         log_erro(msg)
         registrar_erro_usuario("Conversão", "Erro ao baixar vídeo do YouTube. Verifique se o link é válido ou tente novamente mais tarde.")
         if parent_widget:
             QMessageBox.critical(parent_widget, "Erro download YouTube", msg)
-        else:
-            print(msg)
+        adicionar_log(msg)
         return None, None
 
 def gerar_mp4(caminho_origem, caminho_saida, nome_base, parent_widget=None):
@@ -128,7 +148,7 @@ def gerar_mp4(caminho_origem, caminho_saida, nome_base, parent_widget=None):
         ]
         startupinfo = None
         creationflags = 0
-        if os.name == "nt":
+        if platform.system() == "Windows":
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             creationflags = subprocess.CREATE_NO_WINDOW
@@ -170,7 +190,7 @@ def gerar_mp3(caminho_video, caminho_saida, nome_base, parent_widget=None):
         ]
         startupinfo = None
         creationflags = 0
-        if os.name == "nt":
+        if platform.system() == "Windows":
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             creationflags = subprocess.CREATE_NO_WINDOW
@@ -202,7 +222,7 @@ def converter_generico(cmd_args, output_path, log_success, log_fail, parent_widg
         comando = [ffmpeg_cmd] + cmd_args + ['-y', output_path]
         startupinfo = None
         creationflags = 0
-        if os.name == "nt":
+        if platform.system() == "Windows":
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             creationflags = subprocess.CREATE_NO_WINDOW

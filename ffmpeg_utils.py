@@ -1,13 +1,13 @@
 import os
 import sys
 import shutil
+import platform
 from PyQt6.QtWidgets import QMessageBox
-
-# Importe o logger global para registrar tudo que acontece
 from logs_tab import adicionar_log
+from yt_dlp_import import get_yt_dlp
+from platform_utils import get_platform_config
 
 def get_app_dir():
-    # Diretório raiz do projeto/pasta de dados do app, multiplataforma
     if getattr(sys, 'frozen', False):
         base_dir = os.path.dirname(sys.executable)
     else:
@@ -19,11 +19,17 @@ def get_app_dir():
 
 def garantir_ffmpeg(window_parent=None, log_callback=None):
     """
-    Garante que o FFmpeg esteja disponível. Se não estiver, tenta baixar para a pasta do app (apenas no Windows).
-    Retorna o caminho do executável ffmpeg.
-    Compatível com Linux e Windows.
+    Garante que o FFmpeg esteja disponível. Multiplataforma.
     """
-    ffmpeg_bin = "ffmpeg.exe" if os.name == "nt" else "ffmpeg"
+    config = get_platform_config()
+    ffmpeg_bin = config['ffmpeg_bin']
+    sistema = platform.system()
+    
+    if sistema == "Windows":
+        ffmpeg_bin = "ffmpeg.exe"
+    else:  
+        ffmpeg_bin = "ffmpeg"
+
     pasta_app = get_app_dir()
     ffmpeg_path = os.path.join(pasta_app, ffmpeg_bin)
 
@@ -32,47 +38,70 @@ def garantir_ffmpeg(window_parent=None, log_callback=None):
         adicionar_log(f"FFmpeg encontrado na pasta do app: {ffmpeg_path}")
         return ffmpeg_path
 
-    # 2. Verifica no PATH do sistema (Linux e Windows)
+    # 2. Verifica no PATH do sistema
     ffmpeg_global = shutil.which(ffmpeg_bin)
     if ffmpeg_global:
         adicionar_log(f"FFmpeg encontrado no PATH do sistema: {ffmpeg_global}")
         return ffmpeg_global
 
-    # 3. Tenta baixar o ffmpeg para a pasta do app (Windows)
-    if os.name == "nt":
-        url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
-        zip_path = os.path.join(pasta_app, "ffmpeg.zip")
+    # 3. Tentar baixar apenas no Windows
+    if sistema == "Windows":
         try:
-            import requests, zipfile
-            msg = "Baixando FFmpeg..."
+            import requests
+            import zipfile
+            msg = "Baixando FFmpeg para Windows..."
             if log_callback:
                 log_callback(msg)
             adicionar_log(msg)
+            
+            url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+            zip_path = os.path.join(pasta_app, "ffmpeg.zip")
+            
+            # Download
             r = requests.get(url, stream=True)
+            r.raise_for_status()
+            
             with open(zip_path, "wb") as f:
                 for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                    if chunk:
+                        f.write(chunk)
+            
+            # Extração
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 for member in zip_ref.namelist():
                     if member.endswith(ffmpeg_bin):
-                        zip_ref.extract(member, pasta_app)
-                        shutil.move(os.path.join(pasta_app, member), ffmpeg_path)
+                        # Extrair mantendo a estrutura de diretórios
+                        extracted_path = zip_ref.extract(member, pasta_app)
+                        # Mover para a pasta principal do app
+                        final_path = os.path.join(pasta_app, os.path.basename(extracted_path))
+                        if extracted_path != final_path:
+                            if os.path.exists(final_path):
+                                os.remove(final_path)
+                            shutil.move(extracted_path, final_path)
                         break
+            
+            # Limpar
             os.remove(zip_path)
+            
             if os.path.exists(ffmpeg_path):
                 adicionar_log(f"FFmpeg baixado e instalado com sucesso em: {ffmpeg_path}")
                 return ffmpeg_path
-            else:
-                adicionar_log("FFmpeg baixado mas não encontrado após extração.")
+            
         except Exception as e:
-            msg = f"Falha ao baixar FFmpeg: {e}\nBaixe manualmente e coloque em {pasta_app}"
-            adicionar_log(msg)
-            # Corrigido: sempre passar um QWidget ou None como parent!
-            QMessageBox.critical(window_parent if window_parent else None, "Erro FFmpeg", msg)
-            return None
+            adicionar_log(f"Falha ao baixar FFmpeg: {e}")
 
-    # 4. Se não conseguir, avisa
-    msg = f"FFmpeg não encontrado. Baixe e coloque em: {pasta_app}"
+    # 4. Se não conseguir, avisa usuário
+    msg = (f"FFmpeg não encontrado.\n\n"
+           f"Para {sistema}, instale o FFmpeg:\n"
+           f"- Windows: Baixe de https://www.gyan.dev/ffmpeg/builds/ e coloque em: {pasta_app}\n"
+           f"- Linux: Execute 'sudo apt install ffmpeg' ou equivalente")
+    
     adicionar_log(msg)
-    QMessageBox.critical(window_parent if window_parent else None, "Erro FFmpeg", msg)
+    try:
+        if window_parent is not None:
+            QMessageBox.critical(window_parent, "Erro FFmpeg", msg)
+        else:
+            print(msg)
+    except Exception:
+        print(msg)
     return None

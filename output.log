@@ -1,0 +1,502 @@
+2025-09-04 10:00:22,864 - Iniciando carregamento das abas...
+2025-09-04 10:00:26,069 - Aba de transcrição carregada
+2025-09-04 10:00:26,440 - Erro ao carregar aba de conversão: function() argument 'code' must be code, not str
+2025-09-04 10:00:26,446 - Aba de configuração carregada
+2025-09-04 10:00:26,460 - Aba de logs carregada
+2025-09-04 10:00:26,464 - Aba sobre carregada
+2025-09-04 10:00:26,465 - Interface carregada com sucesso!
+2025-09-04 10:00:28,073 - FFmpeg verificado
+2025-09-04 10:05:40,484 - Iniciando carregamento das abas...
+2025-09-04 10:05:41,252 - Aba de transcrição carregada
+2025-09-04 10:05:41,736 - Erro ao carregar aba de conversão: name 'base_events' is not defined
+2025-09-04 10:05:41,744 - Aba de configuração carregada
+2025-09-04 10:05:41,761 - Aba de logs carregada
+2025-09-04 10:05:41,766 - Aba sobre carregada
+2025-09-04 10:05:41,767 - Interface carregada com sucesso!
+2025-09-04 10:05:42,813 - FFmpeg verificado
+2025-09-04 10:07:14,297 - Iniciando carregamento das abas...
+2025-09-04 10:07:15,291 - Aba de transcrição carregada
+2025-09-04 10:07:15,486 - Erro ao carregar aba de conversão: function() argument 'code' must be code, not str
+2025-09-04 10:07:15,491 - Aba de configuração carregada
+2025-09-04 10:07:15,508 - Aba de logs carregada
+2025-09-04 10:07:15,515 - Aba sobre carregada
+2025-09-04 10:07:15,518 - Interface carregada com sucesso!
+2025-09-04 10:07:16,520 - FFmpeg verificado
+2025-09-04 10:08:38,783 - Iniciando carregamento das abas...
+2025-09-04 10:08:39,273 - Aba de transcrição carregada
+2025-09-04 10:08:39,483 - Erro ao carregar aba de conversão: function() argument 'code' must be code, not str
+2025-09-04 10:08:39,490 - Aba de configuração carregada
+2025-09-04 10:08:39,512 - Aba de logs carregada
+2025-09-04 10:08:39,516 - Aba sobre carregada
+2025-09-04 10:08:39,519 - Interface carregada com sucesso!
+2025-09-04 10:08:40,523 - FFmpeg verificado
+2025-09-04 14:09:52,193 - Iniciando carregamento das abas...
+2025-09-04 14:09:53,140 - Aba de transcrição carregada
+2025-09-04 14:09:53,426 - Aba de conversão carregada
+2025-09-04 14:09:53,438 - Aba de configuração carregada
+2025-09-04 14:09:53,460 - Aba de logs carregada
+2025-09-04 14:09:53,465 - Aba sobre carregada
+2025-09-04 14:09:53,465 - Interface carregada com sucesso!
+2025-09-04 14:09:54,790 - FFmpeg verificado
+2025-09-04 14:24:17,938 - Iniciando carregamento das abas...
+2025-09-04 14:24:22,426 - Aba de transcrição carregada
+2025-09-04 14:24:22,445 - Aba de conversão carregada
+2025-09-04 14:24:22,456 - Aba de configuração carregada
+2025-09-04 14:24:22,482 - Aba de logs carregada
+2025-09-04 14:24:22,487 - Aba sobre carregada
+2025-09-04 14:24:22,488 - Interface carregada com sucesso!
+2025-09-04 14:24:25,709 - FFmpeg verificado
+2025-09-04 14:28:34,872 - Iniciando carregamento das abas...
+2025-09-04 14:28:35,748 - Aba de transcrição carregada
+2025-09-04 14:28:36,258 - Aba de conversão carregada
+2025-09-04 14:28:36,275 - Aba de configuração carregada
+2025-09-04 14:28:36,306 - Aba de logs carregada
+2025-09-04 14:28:36,312 - Aba sobre carregada
+2025-09-04 14:28:36,315 - Interface carregada com sucesso!
+2025-09-04 14:28:37,321 - FFmpeg verificado
+2025-09-04 14:37:39,643 - Iniciando carregamento das abas...
+2025-09-04 14:37:40,883 - Aba de transcrição carregada
+2025-09-04 14:37:41,209 - Aba de conversão carregada
+2025-09-04 14:37:41,218 - Aba de configuração carregada
+2025-09-04 14:37:41,242 - Aba de logs carregada
+2025-09-04 14:37:41,249 - Aba sobre carregada
+2025-09-04 14:37:41,252 - Interface carregada com sucesso!
+2025-09-04 14:37:42,367 - FFmpeg verificado
+2025-09-04 14:58:11,674 - Iniciando carregamento das abas...
+2025-09-04 14:58:17,791 - Aba de transcrição carregada
+2025-09-04 14:58:18,669 - Aba de conversão carregada
+2025-09-04 14:58:18,704 - Aba de configuração carregada
+2025-09-04 14:58:18,751 - Aba de logs carregada
+2025-09-04 14:58:18,761 - Aba sobre carregada
+2025-09-04 14:58:18,763 - Interface carregada com sucesso!
+2025-09-04 14:58:22,013 - FFmpeg verificado
+2025-09-05 07:06:19,877 - Iniciando carregamento das abas...
+2025-09-05 07:06:20,866 - Aba de transcrição carregada
+2025-09-05 07:06:21,196 - Aba de conversão carregada
+2025-09-05 07:06:21,217 - Aba de configuração carregada
+2025-09-05 07:06:21,242 - Aba de logs carregada
+2025-09-05 07:06:21,247 - Aba sobre carregada
+2025-09-05 07:06:21,249 - Interface carregada com sucesso!
+2025-09-05 07:06:22,381 - FFmpeg verificado
+2025-09-05 07:29:57,778 - Iniciando carregamento das abas...
+2025-09-05 07:30:00,287 - Aba de transcrição carregada
+2025-09-05 07:30:00,623 - Aba de conversão carregada
+2025-09-05 07:30:00,632 - Aba de configuração carregada
+2025-09-05 07:30:00,645 - Aba de logs carregada
+2025-09-05 07:30:00,648 - Aba sobre carregada
+2025-09-05 07:30:00,648 - Interface carregada com sucesso!
+2025-09-05 07:30:02,565 - FFmpeg verificado
+2025-09-05 07:34:12,908 - Iniciando carregamento das abas...
+2025-09-05 07:34:13,804 - Aba de transcrição carregada
+2025-09-05 07:34:13,962 - Aba de conversão carregada
+2025-09-05 07:34:13,971 - Aba de configuração carregada
+2025-09-05 07:34:13,988 - Aba de logs carregada
+2025-09-05 07:34:13,991 - Aba sobre carregada
+2025-09-05 07:34:13,991 - Interface carregada com sucesso!
+2025-09-05 07:34:14,997 - FFmpeg verificado
+2025-09-05 07:35:10,569 - Iniciando carregamento das abas...
+2025-09-05 07:35:11,442 - Aba de transcrição carregada
+2025-09-05 07:35:11,619 - Aba de conversão carregada
+2025-09-05 07:35:11,626 - Aba de configuração carregada
+2025-09-05 07:35:11,643 - Aba de logs carregada
+2025-09-05 07:35:11,647 - Aba sobre carregada
+2025-09-05 07:35:11,648 - Interface carregada com sucesso!
+2025-09-05 07:35:12,650 - FFmpeg verificado
+2025-09-05 07:53:47,707 - Iniciando carregamento das abas...
+2025-09-05 07:53:48,721 - Aba de transcrição carregada
+2025-09-05 07:53:48,951 - Aba de conversão carregada
+2025-09-05 07:53:48,969 - Aba de configuração carregada
+2025-09-05 07:53:48,994 - Aba de logs carregada
+2025-09-05 07:53:49,001 - Aba sobre carregada
+2025-09-05 07:53:49,003 - Interface carregada com sucesso!
+2025-09-05 07:53:50,281 - FFmpeg verificado
+2025-09-05 08:10:03,841 - Iniciando carregamento das abas...
+2025-09-05 08:10:04,805 - Aba de transcrição carregada
+2025-09-05 08:10:04,986 - Aba de conversão carregada
+2025-09-05 08:10:04,999 - Aba de configuração carregada
+2025-09-05 08:10:05,015 - Aba de logs carregada
+2025-09-05 08:10:05,018 - Aba sobre carregada
+2025-09-05 08:10:05,019 - Interface carregada com sucesso!
+2025-09-05 08:10:06,026 - FFmpeg verificado
+2025-09-05 09:13:04,993 - Iniciando carregamento das abas...
+2025-09-05 09:13:08,373 - Aba de transcrição carregada
+2025-09-05 09:13:08,768 - Aba de conversão carregada
+2025-09-05 09:13:08,780 - Aba de configuração carregada
+2025-09-05 09:13:08,795 - Aba de logs carregada
+2025-09-05 09:13:08,798 - Aba sobre carregada
+2025-09-05 09:13:08,801 - Interface carregada com sucesso!
+2025-09-05 09:13:11,223 - FFmpeg verificado
+2025-09-05 09:29:11,927 - Iniciando carregamento das abas...
+2025-09-05 09:29:12,713 - Aba de transcrição carregada
+2025-09-05 09:29:12,991 - Aba de conversão carregada
+2025-09-05 09:29:12,998 - Aba de configuração carregada
+2025-09-05 09:29:13,014 - Aba de logs carregada
+2025-09-05 09:29:13,017 - Aba sobre carregada
+2025-09-05 09:29:13,018 - Interface carregada com sucesso!
+2025-09-05 09:29:14,064 - FFmpeg verificado
+2025-09-05 09:30:22,274 - Iniciando carregamento das abas...
+2025-09-05 09:30:22,970 - Aba de transcrição carregada
+2025-09-05 09:30:23,192 - Aba de conversão carregada
+2025-09-05 09:30:23,201 - Aba de configuração carregada
+2025-09-05 09:30:23,217 - Aba de logs carregada
+2025-09-05 09:30:23,223 - Aba sobre carregada
+2025-09-05 09:30:23,224 - Interface carregada com sucesso!
+2025-09-05 09:30:24,227 - FFmpeg verificado
+2025-09-05 09:43:30,636 - Iniciando carregamento das abas...
+2025-09-05 09:43:31,365 - Aba de transcrição carregada
+2025-09-05 09:43:31,686 - Aba de conversão carregada
+2025-09-05 09:43:31,710 - Aba de configuração carregada
+2025-09-05 09:43:31,733 - Aba de logs carregada
+2025-09-05 09:43:31,738 - Aba sobre carregada
+2025-09-05 09:43:31,740 - Interface carregada com sucesso!
+2025-09-05 09:43:32,851 - FFmpeg verificado
+2025-09-05 10:04:40,150 - Iniciando carregamento das abas...
+2025-09-05 10:04:40,897 - Aba de transcrição carregada
+2025-09-05 10:04:41,108 - Aba de conversão carregada
+2025-09-05 10:04:41,118 - Aba de configuração carregada
+2025-09-05 10:04:41,135 - Aba de logs carregada
+2025-09-05 10:04:41,139 - Aba sobre carregada
+2025-09-05 10:04:41,141 - Interface carregada com sucesso!
+2025-09-05 10:04:42,145 - FFmpeg verificado
+2025-09-05 10:36:04,006 - Iniciando carregamento das abas...
+2025-09-05 10:36:04,781 - Aba de transcrição carregada
+2025-09-05 10:36:05,220 - Aba de conversão carregada
+2025-09-05 10:36:05,272 - Aba de configuração carregada
+2025-09-05 10:36:05,292 - Aba de logs carregada
+2025-09-05 10:36:05,298 - Aba sobre carregada
+2025-09-05 10:36:05,300 - Interface carregada com sucesso!
+2025-09-05 10:36:06,597 - FFmpeg verificado
+2025-09-05 10:36:23,548 - Iniciando carregamento das abas...
+2025-09-05 10:36:24,018 - Aba de transcrição carregada
+2025-09-05 10:36:24,249 - Aba de conversão carregada
+2025-09-05 10:36:24,263 - Aba de configuração carregada
+2025-09-05 10:36:24,295 - Aba de logs carregada
+2025-09-05 10:36:24,299 - Aba sobre carregada
+2025-09-05 10:36:24,300 - Interface carregada com sucesso!
+2025-09-05 10:36:25,301 - FFmpeg verificado
+2025-09-05 10:42:07,888 - Iniciando carregamento das abas...
+2025-09-05 10:42:08,679 - Aba de transcrição carregada
+2025-09-05 10:42:08,913 - Aba de conversão carregada
+2025-09-05 10:42:08,923 - Aba de configuração carregada
+2025-09-05 10:42:08,942 - Aba de logs carregada
+2025-09-05 10:42:08,946 - Aba sobre carregada
+2025-09-05 10:42:08,947 - Interface carregada com sucesso!
+2025-09-05 10:42:09,952 - FFmpeg verificado
+2025-09-05 10:42:50,936 - Iniciando carregamento das abas...
+2025-09-05 10:42:51,430 - Aba de transcrição carregada
+2025-09-05 10:42:51,625 - Aba de conversão carregada
+2025-09-05 10:42:51,639 - Aba de configuração carregada
+2025-09-05 10:42:51,655 - Aba de logs carregada
+2025-09-05 10:42:51,660 - Aba sobre carregada
+2025-09-05 10:42:51,662 - Interface carregada com sucesso!
+2025-09-05 10:42:52,663 - FFmpeg verificado
+2025-09-05 10:53:56,743 - Iniciando carregamento das abas...
+2025-09-05 10:53:57,398 - Aba de transcrição carregada
+2025-09-05 10:53:57,623 - Aba de conversão carregada
+2025-09-05 10:53:57,636 - Aba de configuração carregada
+2025-09-05 10:53:57,655 - Aba de logs carregada
+2025-09-05 10:53:57,659 - Aba sobre carregada
+2025-09-05 10:53:57,660 - Interface carregada com sucesso!
+2025-09-05 10:53:58,666 - FFmpeg verificado
+2025-09-05 10:55:38,874 - Iniciando carregamento das abas...
+2025-09-05 10:55:39,244 - Aba de transcrição carregada
+2025-09-05 10:55:39,458 - Aba de conversão carregada
+2025-09-05 10:55:39,468 - Aba de configuração carregada
+2025-09-05 10:55:39,489 - Aba de logs carregada
+2025-09-05 10:55:39,497 - Aba sobre carregada
+2025-09-05 10:55:39,498 - Interface carregada com sucesso!
+2025-09-05 10:55:40,499 - FFmpeg verificado
+2025-09-05 11:09:18,854 - Iniciando carregamento das abas...
+2025-09-05 11:09:19,181 - Aba de transcrição carregada
+2025-09-05 11:09:19,415 - Aba de conversão carregada
+2025-09-05 11:09:19,426 - Aba de configuração carregada
+2025-09-05 11:09:19,447 - Aba de logs carregada
+2025-09-05 11:09:19,451 - Aba sobre carregada
+2025-09-05 11:09:19,452 - Interface carregada com sucesso!
+2025-09-05 11:09:20,456 - FFmpeg verificado
+2025-09-05 11:21:28,832 - Iniciando carregamento das abas...
+2025-09-05 11:21:29,512 - Erro ao carregar aba de transcrição: function() argument 'code' must be code, not str
+2025-09-05 11:21:29,828 - Aba de conversão carregada
+2025-09-05 11:21:29,838 - Aba de configuração carregada
+2025-09-05 11:21:29,859 - Aba de logs carregada
+2025-09-05 11:21:29,862 - Aba sobre carregada
+2025-09-05 11:21:29,863 - Interface carregada com sucesso!
+2025-09-05 11:21:31,697 - FFmpeg verificado
+2025-09-05 11:21:33,340 - Erro ao carregar aba de transcrição: name 'base_events' is not defined
+2025-09-05 11:24:08,212 - Iniciando carregamento das abas...
+2025-09-05 11:24:08,873 - Erro ao carregar aba de transcrição: function() argument 'code' must be code, not str
+2025-09-05 11:24:09,040 - Aba de conversão carregada
+2025-09-05 11:24:09,050 - Aba de configuração carregada
+2025-09-05 11:24:09,068 - Aba de logs carregada
+2025-09-05 11:24:09,071 - Aba sobre carregada
+2025-09-05 11:24:09,072 - Interface carregada com sucesso!
+2025-09-05 11:24:10,671 - FFmpeg verificado
+2025-09-05 11:29:52,202 - Iniciando carregamento das abas...
+2025-09-05 11:29:52,797 - Erro ao carregar aba de transcrição: function() argument 'code' must be code, not str
+2025-09-05 11:29:53,005 - Aba de conversão carregada
+2025-09-05 11:29:53,013 - Aba de configuração carregada
+2025-09-05 11:29:53,033 - Aba de logs carregada
+2025-09-05 11:29:53,035 - Aba sobre carregada
+2025-09-05 11:29:53,036 - Interface carregada com sucesso!
+2025-09-05 11:29:54,244 - FFmpeg verificado
+2025-09-05 11:29:56,969 - Erro ao carregar aba de transcrição: name 'base_events' is not defined
+2025-09-05 11:30:07,252 - Iniciando carregamento das abas...
+2025-09-05 11:30:07,855 - Erro ao carregar aba de transcrição: function() argument 'code' must be code, not str
+2025-09-05 11:30:08,091 - Aba de conversão carregada
+2025-09-05 11:30:08,117 - Aba de configuração carregada
+2025-09-05 11:30:08,152 - Aba de logs carregada
+2025-09-05 11:30:08,156 - Aba sobre carregada
+2025-09-05 11:30:08,157 - Interface carregada com sucesso!
+2025-09-05 11:30:09,631 - FFmpeg verificado
+2025-09-05 13:42:59,481 - Iniciando carregamento das abas...
+2025-09-05 13:43:00,834 - Erro ao carregar aba de transcrição: function() argument 'code' must be code, not str
+2025-09-05 13:43:01,255 - Aba de conversão carregada
+2025-09-05 13:43:01,287 - Aba de configuração carregada
+2025-09-05 13:43:01,315 - Aba de logs carregada
+2025-09-05 13:43:01,321 - Aba sobre carregada
+2025-09-05 13:43:01,322 - Interface carregada com sucesso!
+2025-09-05 13:43:03,197 - FFmpeg verificado
+2025-09-05 13:49:04,200 - Iniciando carregamento das abas...
+2025-09-05 13:49:20,895 - Iniciando carregamento das abas...
+2025-09-05 13:51:57,983 - Iniciando carregamento das abas...
+2025-09-05 14:04:34,887 - Iniciando carregamento das abas...
+2025-09-05 14:16:47,593 - Iniciando carregamento das abas...
+2025-09-05 14:16:48,452 - Aba de transcrição carregada
+2025-09-05 14:16:48,656 - Aba de conversão carregada
+2025-09-05 14:16:48,664 - Aba de configuração carregada
+2025-09-05 14:16:48,690 - Aba de logs carregada
+2025-09-05 14:16:48,694 - Aba sobre carregada
+2025-09-05 14:16:48,697 - Interface carregada com sucesso!
+2025-09-05 14:16:49,703 - FFmpeg verificado
+2025-09-05 14:20:13,138 - Iniciando carregamento das abas...
+2025-09-05 14:20:13,544 - Aba de transcrição carregada
+2025-09-05 14:20:13,824 - Aba de conversão carregada
+2025-09-05 14:20:13,834 - Aba de configuração carregada
+2025-09-05 14:20:13,858 - Aba de logs carregada
+2025-09-05 14:20:13,864 - Aba sobre carregada
+2025-09-05 14:20:13,866 - Interface carregada com sucesso!
+2025-09-05 14:20:14,870 - FFmpeg verificado
+2025-09-05 14:33:05,365 - Iniciando carregamento das abas...
+2025-09-05 14:33:06,249 - Aba de transcrição carregada
+2025-09-05 14:33:06,481 - Aba de conversão carregada
+2025-09-05 14:33:06,491 - Aba de configuração carregada
+2025-09-05 14:33:06,509 - Aba de logs carregada
+2025-09-05 14:33:06,513 - Aba sobre carregada
+2025-09-05 14:33:06,514 - Interface carregada com sucesso!
+2025-09-05 14:33:07,515 - FFmpeg verificado
+2025-09-05 14:54:53,112 - Iniciando carregamento das abas...
+2025-09-05 14:54:53,941 - Aba de transcrição carregada
+2025-09-05 14:54:54,166 - Aba de conversão carregada
+2025-09-05 14:54:54,180 - Aba de configuração carregada
+2025-09-05 14:54:54,203 - Aba de logs carregada
+2025-09-05 14:54:54,207 - Aba sobre carregada
+2025-09-05 14:54:54,207 - Interface carregada com sucesso!
+2025-09-05 14:54:55,211 - FFmpeg verificado
+2025-09-08 07:03:58,727 - Iniciando carregamento das abas...
+2025-09-08 07:04:00,952 - Aba de transcrição carregada
+2025-09-08 07:04:01,827 - Aba de conversão carregada
+2025-09-08 07:04:01,878 - Aba de configuração carregada
+2025-09-08 07:04:01,935 - Aba de logs carregada
+2025-09-08 07:04:01,945 - Aba sobre carregada
+2025-09-08 07:04:01,951 - Interface carregada com sucesso!
+2025-09-08 07:04:04,849 - FFmpeg verificado
+2025-09-08 07:09:05,426 - Iniciando carregamento das abas...
+2025-09-08 07:09:06,571 - Aba de transcrição carregada
+2025-09-08 07:09:06,893 - Aba de conversão carregada
+2025-09-08 07:09:06,924 - Aba de configuração carregada
+2025-09-08 07:09:06,951 - Aba de logs carregada
+2025-09-08 07:09:06,958 - Aba sobre carregada
+2025-09-08 07:09:06,963 - Interface carregada com sucesso!
+2025-09-08 07:09:08,383 - FFmpeg verificado
+2025-09-08 07:45:42,725 - Iniciando carregamento das abas...
+2025-09-08 07:45:48,072 - Aba de transcrição carregada
+2025-09-08 07:45:49,139 - Aba de conversão carregada
+2025-09-08 07:45:49,149 - Aba de configuração carregada
+2025-09-08 07:45:49,176 - Aba de logs carregada
+2025-09-08 07:45:49,182 - Aba sobre carregada
+2025-09-08 07:45:49,183 - Interface carregada com sucesso!
+2025-09-08 07:45:51,982 - FFmpeg verificado
+2025-09-08 07:52:30,592 - Iniciando carregamento das abas...
+2025-09-08 07:52:32,210 - Aba de transcrição carregada
+2025-09-08 07:52:33,039 - Aba de conversão carregada
+2025-09-08 07:52:33,079 - Aba de configuração carregada
+2025-09-08 07:52:33,137 - Aba de logs carregada
+2025-09-08 07:52:33,144 - Aba sobre carregada
+2025-09-08 07:52:33,147 - Interface carregada com sucesso!
+2025-09-08 07:52:34,559 - FFmpeg verificado
+2025-09-08 09:05:04,022 - Iniciando carregamento das abas...
+2025-09-08 09:05:07,276 - Aba de transcrição carregada
+2025-09-08 09:05:07,904 - Aba de conversão carregada
+2025-09-08 09:05:07,921 - Aba de configuração carregada
+2025-09-08 09:05:07,936 - Aba de logs carregada
+2025-09-08 09:05:07,941 - Aba sobre carregada
+2025-09-08 09:05:07,942 - Interface carregada com sucesso!
+2025-09-08 09:05:09,914 - FFmpeg verificado
+2025-09-08 09:07:18,787 - Iniciando carregamento das abas...
+2025-09-08 09:07:19,485 - Aba de transcrição carregada
+2025-09-08 09:07:19,736 - Aba de conversão carregada
+2025-09-08 09:07:19,744 - Aba de configuração carregada
+2025-09-08 09:07:19,764 - Aba de logs carregada
+2025-09-08 09:07:19,768 - Aba sobre carregada
+2025-09-08 09:07:19,769 - Interface carregada com sucesso!
+2025-09-08 09:07:20,778 - FFmpeg verificado
+2025-09-08 09:17:36,196 - Iniciando carregamento das abas...
+2025-09-08 09:17:36,834 - Aba de transcrição carregada
+2025-09-08 09:17:37,087 - Aba de conversão carregada
+2025-09-08 09:17:37,095 - Aba de configuração carregada
+2025-09-08 09:17:37,117 - Aba de logs carregada
+2025-09-08 09:17:37,123 - Aba sobre carregada
+2025-09-08 09:17:37,126 - Interface carregada com sucesso!
+2025-09-08 09:17:38,129 - FFmpeg verificado
+2025-09-08 09:35:50,091 - Iniciando carregamento das abas...
+2025-09-08 09:35:50,766 - Aba de transcrição carregada
+2025-09-08 09:35:51,041 - Aba de conversão carregada
+2025-09-08 09:35:51,048 - Aba de configuração carregada
+2025-09-08 09:35:51,070 - Aba de logs carregada
+2025-09-08 09:35:51,074 - Aba sobre carregada
+2025-09-08 09:35:51,076 - Interface carregada com sucesso!
+2025-09-08 09:35:52,079 - FFmpeg verificado
+2025-09-08 09:41:20,293 - Iniciando carregamento das abas...
+2025-09-08 09:41:20,971 - Aba de transcrição carregada
+2025-09-08 09:41:21,253 - Aba de conversão carregada
+2025-09-08 09:41:21,264 - Aba de configuração carregada
+2025-09-08 09:41:21,293 - Aba de logs carregada
+2025-09-08 09:41:21,297 - Aba sobre carregada
+2025-09-08 09:41:21,298 - Interface carregada com sucesso!
+2025-09-08 09:41:22,302 - FFmpeg verificado
+2025-09-08 09:59:49,768 - Iniciando carregamento das abas...
+2025-09-08 09:59:50,326 - Aba de transcrição carregada
+2025-09-08 09:59:50,689 - Aba de conversão carregada
+2025-09-08 09:59:50,697 - Aba de configuração carregada
+2025-09-08 09:59:50,718 - Aba de logs carregada
+2025-09-08 09:59:50,722 - Aba sobre carregada
+2025-09-08 09:59:50,723 - Interface carregada com sucesso!
+2025-09-08 09:59:51,726 - Erro ao verificar FFmpeg: name 'os' is not defined
+2025-09-08 10:14:04,815 - Iniciando carregamento das abas...
+2025-09-08 10:14:05,376 - Aba de transcrição carregada
+2025-09-08 10:14:05,778 - Aba de conversão carregada
+2025-09-08 10:14:05,797 - Aba de configuração carregada
+2025-09-08 10:14:05,822 - Aba de logs carregada
+2025-09-08 10:14:05,827 - Aba sobre carregada
+2025-09-08 10:14:05,830 - Interface carregada com sucesso!
+2025-09-08 10:14:07,124 - FFmpeg verificado
+2025-09-08 11:01:46,866 - Iniciando carregamento das abas...
+2025-09-08 11:01:47,528 - Aba de transcrição carregada
+2025-09-08 11:01:47,995 - Erro ao carregar aba de conversão: cannot import name 'get_yt_dlp' from 'yt_dlp_import' (C:\interface_qt\yt_dlp_import.py)
+2025-09-08 11:01:48,011 - Aba de configuração carregada
+2025-09-08 11:01:48,031 - Aba de logs carregada
+2025-09-08 11:01:48,037 - Aba sobre carregada
+2025-09-08 11:01:48,039 - Interface carregada com sucesso!
+2025-09-08 11:01:49,359 - FFmpeg verificado
+2025-09-08 11:02:25,928 - Iniciando carregamento das abas...
+2025-09-08 11:02:26,349 - Aba de transcrição carregada
+2025-09-08 11:02:26,353 - Erro ao carregar aba de conversão: cannot import name 'get_yt_dlp' from 'yt_dlp_import' (C:\interface_qt\yt_dlp_import.py)
+2025-09-08 11:02:26,361 - Aba de configuração carregada
+2025-09-08 11:02:26,381 - Aba de logs carregada
+2025-09-08 11:02:26,386 - Aba sobre carregada
+2025-09-08 11:02:26,388 - Interface carregada com sucesso!
+2025-09-08 11:02:27,542 - Erro ao verificar FFmpeg: cannot import name 'get_yt_dlp' from 'yt_dlp_import' (C:\interface_qt\yt_dlp_import.py)
+2025-09-08 11:03:26,389 - Iniciando carregamento das abas...
+2025-09-08 11:03:26,768 - Aba de transcrição carregada
+2025-09-08 11:03:27,023 - Erro ao carregar aba de conversão: cannot import name 'get_yt_dlp' from 'yt_dlp_import' (C:\interface_qt\yt_dlp_import.py)
+2025-09-08 11:03:27,029 - Aba de configuração carregada
+2025-09-08 11:03:27,047 - Aba de logs carregada
+2025-09-08 11:03:27,050 - Aba sobre carregada
+2025-09-08 11:03:27,051 - Interface carregada com sucesso!
+2025-09-08 11:03:28,054 - FFmpeg verificado
+2025-09-08 11:07:55,344 - Iniciando carregamento das abas...
+2025-09-08 11:07:55,700 - Aba de transcrição carregada
+2025-09-08 11:07:55,992 - Aba de conversão carregada
+2025-09-08 11:07:56,000 - Aba de configuração carregada
+2025-09-08 11:07:56,021 - Aba de logs carregada
+2025-09-08 11:07:56,025 - Aba sobre carregada
+2025-09-08 11:07:56,026 - Interface carregada com sucesso!
+2025-09-08 11:07:57,027 - Erro ao verificar FFmpeg: name 'get_platform_config' is not defined
+2025-09-08 11:09:51,996 - Iniciando carregamento das abas...
+2025-09-08 11:09:52,456 - Aba de transcrição carregada
+2025-09-08 11:09:52,801 - Aba de conversão carregada
+2025-09-08 11:09:52,811 - Aba de configuração carregada
+2025-09-08 11:09:52,837 - Aba de logs carregada
+2025-09-08 11:09:52,842 - Aba sobre carregada
+2025-09-08 11:09:52,844 - Interface carregada com sucesso!
+2025-09-08 11:09:53,848 - Erro ao verificar FFmpeg: name 'get_platform_config' is not defined
+2025-09-08 11:20:49,745 - Iniciando carregamento das abas...
+2025-09-08 11:20:50,227 - Aba de transcrição carregada
+2025-09-08 11:20:50,503 - Aba de conversão carregada
+2025-09-08 11:20:50,509 - Aba de configuração carregada
+2025-09-08 11:20:50,533 - Aba de logs carregada
+2025-09-08 11:20:50,538 - Aba sobre carregada
+2025-09-08 11:20:50,538 - Interface carregada com sucesso!
+2025-09-08 11:20:51,542 - FFmpeg verificado
+2025-09-08 11:31:51,915 - Iniciando carregamento das abas...
+2025-09-08 11:31:52,315 - Aba de transcrição carregada
+2025-09-08 11:31:52,323 - Erro ao carregar aba de conversão: No module named 'yt_dlp_import'
+2025-09-08 11:31:52,335 - Aba de configuração carregada
+2025-09-08 11:31:52,359 - Aba de logs carregada
+2025-09-08 11:31:52,364 - Aba sobre carregada
+2025-09-08 11:31:52,366 - Interface carregada com sucesso!
+2025-09-08 11:31:53,555 - Erro ao verificar FFmpeg: No module named 'yt_dlp_import'
+2025-09-08 13:32:36,043 - Iniciando carregamento das abas...
+2025-09-08 13:32:36,622 - Aba de transcrição carregada
+2025-09-08 13:32:37,015 - Aba de conversão carregada
+2025-09-08 13:32:37,022 - Aba de configuração carregada
+2025-09-08 13:32:37,043 - Aba de logs carregada
+2025-09-08 13:32:37,046 - Aba sobre carregada
+2025-09-08 13:32:37,048 - Interface carregada com sucesso!
+2025-09-08 13:32:38,052 - FFmpeg verificado
+2025-09-08 14:04:03,737 - Iniciando carregamento das abas...
+2025-09-08 14:04:07,254 - Aba de transcrição carregada
+2025-09-08 14:04:07,968 - Aba de conversão carregada
+2025-09-08 14:04:07,972 - Aba de configuração carregada
+2025-09-08 14:04:07,981 - Aba de logs carregada
+2025-09-08 14:04:07,982 - Aba sobre carregada
+2025-09-08 14:04:07,983 - Interface carregada com sucesso!
+2025-09-08 14:04:08,985 - FFmpeg verificado
+2025-09-08 14:58:43,830 - Iniciando carregamento das abas...
+2025-09-08 14:58:49,169 - Aba de transcrição carregada
+2025-09-08 14:58:50,451 - Aba de conversão carregada
+2025-09-08 14:58:50,461 - Aba de configuração carregada
+2025-09-08 14:58:50,482 - Aba de logs carregada
+2025-09-08 14:58:50,488 - Aba sobre carregada
+2025-09-08 14:58:50,489 - Interface carregada com sucesso!
+2025-09-08 14:59:02,112 - FFmpeg verificado
+2025-09-09 07:20:28,207 - Iniciando carregamento das abas...
+2025-09-09 07:20:31,320 - Aba de transcrição carregada
+2025-09-09 07:20:31,901 - Aba de conversão carregada
+2025-09-09 07:20:31,907 - Aba de configuração carregada
+2025-09-09 07:20:31,926 - Aba de logs carregada
+2025-09-09 07:20:31,930 - Aba sobre carregada
+2025-09-09 07:20:31,931 - Interface carregada com sucesso!
+2025-09-09 07:20:37,996 - FFmpeg verificado
+2025-09-09 07:26:56,222 - Iniciando carregamento das abas...
+2025-09-09 07:26:57,330 - Aba de transcrição carregada
+2025-09-09 07:26:57,705 - Aba de conversão carregada
+2025-09-09 07:26:57,714 - Aba de configuração carregada
+2025-09-09 07:26:57,751 - Aba de logs carregada
+2025-09-09 07:26:57,761 - Aba sobre carregada
+2025-09-09 07:26:57,762 - Interface carregada com sucesso!
+2025-09-09 07:27:01,317 - FFmpeg verificado
+2025-09-09 08:04:30,531 - Iniciando carregamento das abas...
+2025-09-09 08:04:32,361 - Aba de transcrição carregada
+2025-09-09 08:04:33,012 - Aba de conversão carregada
+2025-09-09 08:04:33,020 - Aba de configuração carregada
+2025-09-09 08:04:33,039 - Aba de logs carregada
+2025-09-09 08:04:33,043 - Aba sobre carregada
+2025-09-09 08:04:33,044 - Interface carregada com sucesso!
+2025-09-09 08:04:37,915 - FFmpeg verificado
+2025-09-09 08:25:05,647 - Iniciando carregamento das abas...
+2025-09-09 08:25:06,477 - Aba de transcrição carregada
+2025-09-09 08:25:06,814 - Aba de conversão carregada
+2025-09-09 08:25:06,825 - Aba de configuração carregada
+2025-09-09 08:25:06,847 - Aba de logs carregada
+2025-09-09 08:25:06,850 - Aba sobre carregada
+2025-09-09 08:25:06,851 - Interface carregada com sucesso!
+2025-09-09 08:25:09,629 - FFmpeg verificado
+2025-09-09 08:29:33,110 - Iniciando carregamento das abas...
+2025-09-09 08:29:33,617 - Aba de transcrição carregada
+2025-09-09 08:29:33,898 - Aba de conversão carregada
+2025-09-09 08:29:33,905 - Aba de configuração carregada
+2025-09-09 08:29:33,924 - Aba de logs carregada
+2025-09-09 08:29:33,928 - Aba sobre carregada
+2025-09-09 08:29:33,929 - Interface carregada com sucesso!
+2025-09-09 08:29:35,559 - FFmpeg verificado

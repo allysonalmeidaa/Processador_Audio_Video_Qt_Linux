@@ -2,20 +2,25 @@ import gc
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from memory_utils import clear_memory
-
 import traceback
-
 from ffmpeg_utils import garantir_ffmpeg
-
 from datetime import timedelta
 from erros_usuario import registrar_erro_usuario
 from PyQt6.QtCore import QCoreApplication
 import subprocess
-
-# Importe a função global de log do programa
+import platform 
 from logs_tab import adicionar_log
+
+try:
+    import whisper
+    WHISPER_AVAILABLE = True
+except ImportError as e:
+    WHISPER_AVAILABLE = False
+    print(f"Whisper não disponível: {e}")
+except Exception as e:
+    WHISPER_AVAILABLE = False
+    print(f"Erro ao carregar whisper: {e}")
 
 # --- CENTRALIZAÇÃO DOS ARQUIVOS NA PASTA DO APP ---
 def get_app_dir():
@@ -52,6 +57,8 @@ def remove_repeticoes(segments):
     return cleaned_segments
 
 def baixar_e_avisa_modelo(modelo, progresso_callback=None):
+    if not WHISPER_AVAILABLE:
+        raise RuntimeError("Whisper não disponível. Instale com 'pip install openai-whisper'.")
     try:
         try:
             import whisper
@@ -111,7 +118,8 @@ def transcrever_com_diarizacao(caminho_arquivo, modelo_escolhido, idioma=None, p
                     if progresso_callback:
                         progresso_callback(2, msg)
                     adicionar_log(f"FFmpeg: {msg}")
-                ffmpeg_cmd = garantir_ffmpeg(log_ffmpeg)
+                    
+                ffmpeg_cmd = garantir_ffmpeg(log_callback=log_ffmpeg)
                 if not ffmpeg_cmd:
                     registrar_erro_usuario(
                         "Transcrição",
@@ -119,6 +127,7 @@ def transcrever_com_diarizacao(caminho_arquivo, modelo_escolhido, idioma=None, p
                     )
                     adicionar_log("FFmpeg não encontrado ou falha ao baixar.")
                     raise RuntimeError("FFmpeg não encontrado.")
+                    
                 comando = [
                     ffmpeg_cmd,
                     '-i', caminho_arquivo,
@@ -128,17 +137,24 @@ def transcrever_com_diarizacao(caminho_arquivo, modelo_escolhido, idioma=None, p
                     '-y',
                     caminho_audio_temp
                 ]
-                # ALTERAÇÃO: startupinfo + creationflags para garantir ocultação do CMD
+                
+                # CONFIGURAÇÃO MULTIPLATAFORMA PARA SUBPROCESS
                 startupinfo = None
-                if os.name == "nt":
+                creationflags = 0
+                
+                if platform.system() == "Windows":
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    creationflags = subprocess.CREATE_NO_WINDOW
+                # FIM DA CONFIGURAÇÃO MULTIPLATAFORMA
+                
                 processo = subprocess.run(
                     comando,
                     capture_output=True, text=True,
-                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                    creationflags=creationflags,
                     startupinfo=startupinfo
                 )
+                
                 if processo.returncode != 0:
                     registrar_erro_usuario(
                         "Transcrição",
@@ -146,8 +162,10 @@ def transcrever_com_diarizacao(caminho_arquivo, modelo_escolhido, idioma=None, p
                     )
                     adicionar_log(f"Erro ao extrair áudio com FFmpeg: {processo.stderr}")
                     raise RuntimeError("Erro ao extrair áudio com FFmpeg: " + processo.stderr)
+                    
                 caminho_arquivo_para_diarizacao = caminho_audio_temp
                 adicionar_log(f"Arquivo convertido para WAV temporário: {caminho_audio_temp}")
+                
             except Exception as e:
                 registrar_erro_usuario(
                     "Transcrição",
@@ -268,8 +286,9 @@ def transcrever_com_diarizacao(caminho_arquivo, modelo_escolhido, idioma=None, p
                 f.write(mensagem)
             else:
                 for segment in segments:
-                    f.write(f"[{format_timestamp(segment['start'])} -> {format_timestamp(segment['end'])}] {segment['speaker']}: {segment['text']}\n\n")
-        adicionar_log(f"Transcrição salva em: {caminho_transcr}")
+                    start_time = format_timestamp(segment['start'])  # Já formata como HH:MM:SS
+                    end_time = format_timestamp(segment['end'])
+                    f.write(f"[{start_time} -> {end_time}] {segment['speaker']}: {segment['text']}\n\n")
 
         if idioma != "en":
             if progresso_callback:
@@ -309,7 +328,9 @@ def transcrever_com_diarizacao(caminho_arquivo, modelo_escolhido, idioma=None, p
         else:
             texto_interface = ""
             for segment in segments:
-                texto_interface += f"[{format_timestamp(segment['start'])} -> {format_timestamp(segment['end'])}] {segment['speaker']}: {segment['text']}\n\n"
+                start_time = format_timestamp(segment['start'])
+                end_time = format_timestamp(segment['end'])
+                texto_interface += f"[{start_time} -> {end_time}] {segment['speaker']}: {segment['text']}\n\n"
             adicionar_log("Transcrição de texto pronta para interface.")
             return texto_interface
 
